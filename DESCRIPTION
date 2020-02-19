@@ -1,0 +1,9 @@
+Name: uncert
+Version: 0.0.1-alpha
+Date: 2020-02-19
+Author: Singon <singond@seznam.cz>
+Maintainer: Singon <singond@seznam.cz>
+Title: Uncertainty for Octave
+Description: Enables calculations with uncertainties
+Categories: uncertainty
+License: GPLv3+
