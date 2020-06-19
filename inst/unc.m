@@ -30,13 +30,29 @@ classdef unc
 			u.uncert = uncert;
 		endfunction
 
+		## TODO: Make private
+		function d = dispcol(o)
+			v = o.value(:);
+			u = o.uncert(:);
+			if (isscalar(u))
+				u = u(ones(size(v)));
+			endif
+			s = disp([v u]);                   # Format uniformly
+			ss = strsplit(strtrim(s));         # Split into individual numbers
+			vstr = ss(1:2:end);                # Values (as strings)
+			ustr = ss(2:2:end);                # Uncertainties (as strings)
+			lv = max(cellfun("length", vstr)); # Length of longest value
+			lu = max(cellfun("length", ustr)); # Length of longest uncertainty
+			fmt = sprintf("%%%ds +- %%%ds", lv, lu);
+			oneline = sprintf(fmt, [vstr; ustr]{:}); # Format as one line
+			d = reshape(oneline, lv + lu + 4, [])';  # To multirow char matrix
+		endfunction
+
 		function d = disp(o)
-			s = sprintf("%g +- %g\n", o.value, o.uncert);
-			s = s(1:end-1);
 			if (nargout == 0)
-				disp(s);
+				disp(o.dispcol());
 			else
-				d = s;
+				d = o.dispcol();
 			endif
 		endfunction
 
