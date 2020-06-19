@@ -15,7 +15,7 @@ classdef unc
 			elseif (nargin > 2)
 				error("unc: too many arguments");
 			endif
-			if (!isnumeric(value) || isnumeric(uncert))
+			if (!isnumeric(value) || !isnumeric(uncert))
 				error("'value' and 'uncert' must be numeric");
 			endif
 			## Perform a simple binary operation to check if the arrays
