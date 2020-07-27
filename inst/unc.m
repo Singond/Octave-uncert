@@ -8,6 +8,7 @@ classdef unc
 		## Create a new number with uncertainty
 		function u = unc(value, uncert)
 			## Validate arguments
+			## TODO: Check that uncertainty is not negative
 			if (nargin == 0)
 				error("unc: no argument given");
 			elseif (nargin == 1)
@@ -32,8 +33,6 @@ classdef unc
 
 		function d = disp(o)
 			sigdigits = 5;              # Significant digits to display
-			negv = any(o.value < 0);
-			negu = any(o.uncert < 0);
 			absv = abs(o.value(:));
 			absu = abs(o.uncert(:));
 			extremes = [min(absv) max(absv); min(absu) max(absu)];
@@ -51,21 +50,19 @@ classdef unc
 				fmt = "%g +- %g";
 			else
 				## Use normal notation
-				widthv = leftmostv;
-				widthu = leftmostu;
+				## Add one additional character for minus sign, even if all
+				## values are positive (this is consistent with standard
+				## matrix disp implementation).
+				widthv = leftmostv + 1; # One is for minus sign
+				widthu = leftmostu;     # No minus sign (always positive)
 				decplaces = max(-firstsig + sigdigits)(1);
 				if (decplaces > 0)
+					## Increase width to accomodate decimal places.
+					## The additional 1 is for the decimal separator.
 					widthv += decplaces + 1;
 					widthu += decplaces + 1;
 				else
 					decplaces = 0;
-				endif
-				## Increase width to accomodate minus sign
-				if (negv)
-					widthv += 1;
-				endif
-				if (negu)
-					widthu += 1;
 				endif
 				fmt = sprintf("%%%d.%df +- %%%d.%df", ...
 					widthv, decplaces, widthu, decplaces);
@@ -74,7 +71,7 @@ classdef unc
 			if (isscalar(o))
 				pad = 1;
 			else
-				pad = 3;
+				pad = 2;
 			endif
 
 			if (ndims(o.value) == 2)
