@@ -72,7 +72,7 @@ classdef unc
 					widthv, decplaces, widthu, decplaces);
 			endif
 
-			if (isscalar(o.value) && isscalar(o.uncert))
+			if (isscalar(o))
 				pad = 1;
 			else
 				pad = 3;
@@ -91,6 +91,10 @@ classdef unc
 				disp(o.value);
 				disp(o.uncert);
 			endif
+		endfunction
+
+		function r = isscalar(a)
+			r = isscalar(a.value) && isscalar(a.uncert);
 		endfunction
 
 		function sum = plus(a, b)
