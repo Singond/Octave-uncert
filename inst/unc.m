@@ -170,7 +170,8 @@ classdef unc
 				else
 					d = [d sprintf(linefmt, vu')];
 				endif
-				if (tocol < totcols)
+				## Print blank line if in loose format
+				if (tocol < totcols && loose)
 					if (nargout == 0)
 						puts(linesep);
 					else
