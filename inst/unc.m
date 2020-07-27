@@ -40,7 +40,6 @@ classdef unc
 			clear absv absu;
 			# Position of first significant digit to the left of decimal point
 			firstsig = floor(log10(extremes)) + 1;
-			lastsig = firstsig - sigdigits + 1;
 			leftmostv = firstsig(1,2);
 			leftmostu = firstsig(2,2);
 			rightmost = min(firstsig)(1);
@@ -54,7 +53,7 @@ classdef unc
 				## Use normal notation
 				widthv = leftmostv;
 				widthu = leftmostu;
-				decplaces = max(-lastsig)(1) + 1;
+				decplaces = max(-firstsig + sigdigits)(1);
 				if (decplaces > 0)
 					widthv += decplaces + 1;
 					widthu += decplaces + 1;
