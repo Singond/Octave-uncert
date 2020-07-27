@@ -130,13 +130,17 @@ classdef unc
 			if (nargout > 0)
 				d = "";
 			endif
+
+			## Split the value into smaller chunks so that the displayed
+			## text will fit the available width.
+			## TODO: This should only happen if split_long_rows() returns true.
 			while (donecol < totcols)
 				tocol = min(donecol + colsregular, totcols);
 				cols = tocol - donecol;
 				fromcol = donecol + 1;
+				## Unless the whole output fits available width,
+				## print the chunk header followed by an optional blank line.
 				if (donecol != 0 || tocol < totcols)
-					## Print column number(s)
-					#coltext
 					if (fromcol == tocol)
 						coltext = sprintf(" Column %d:\n", fromcol);
 					elseif (fromcol+1 == tocol)
@@ -156,10 +160,12 @@ classdef unc
 						endif
 					endif
 				endif
+				## Prepare format and rearrange data
 				linefmt = [repmat([" "(ones(1, pad)) fmt], 1, cols) linesep];
 				vu = zeros(rows(o.value), 2*cols);
 				vu(:,1:2:end) = o.value(:,fromcol:tocol);
 				vu(:,2:2:end) = o.uncert(:,fromcol:tocol);
+				## Print the chunk
 				if (nargout == 0)
 					printf(linefmt, vu');
 				else
@@ -172,6 +178,7 @@ classdef unc
 						d = [d linesep];
 					endif
 				endif
+				## Mark processed columns
 				donecol = tocol;
 			endwhile
 		endfunction
