@@ -30,29 +30,66 @@ classdef unc
 			u.uncert = uncert;
 		endfunction
 
-		## TODO: Make private
-		function d = dispcol(o)
-			v = o.value(:);
-			u = o.uncert(:);
-			if (isscalar(u))
-				u = u(ones(size(v)));
-			endif
-			s = disp([v u]);                   # Format uniformly
-			ss = strsplit(strtrim(s));         # Split into individual numbers
-			vstr = ss(1:2:end);                # Values (as strings)
-			ustr = ss(2:2:end);                # Uncertainties (as strings)
-			lv = max(cellfun("length", vstr)); # Length of longest value
-			lu = max(cellfun("length", ustr)); # Length of longest uncertainty
-			fmt = sprintf("%%%ds +- %%%ds", lv, lu);
-			oneline = sprintf(fmt, [vstr; ustr]{:}); # Format as one line
-			d = reshape(oneline, lv + lu + 4, [])';  # To multirow char matrix
-		endfunction
-
 		function d = disp(o)
-			if (nargout == 0)
-				disp(o.dispcol());
+			sigdigits = 5;              # Significant digits to display
+			negv = any(o.value < 0);
+			negu = any(o.uncert < 0);
+			absv = abs(o.value(:));
+			absu = abs(o.uncert(:));
+			extremes = [min(absv) max(absv); min(absu) max(absu)];
+			clear absv absu;
+			# Position of first significant digit to the left of decimal point
+			firstsig = floor(log10(extremes)) + 1;
+			lastsig = firstsig - sigdigits + 1;
+			leftmostv = firstsig(1,2);
+			leftmostu = firstsig(2,2);
+			rightmost = min(firstsig)(1);
+			widthv = 0;  # Width of the value field
+			widthu = 0;  # Width of the uncertainty field
+			decplaces = 0;
+			if (rightmost < -10 || max(leftmostv, leftmostu) > 10)
+				## Use exponential notation
+				fmt = "%g +- %g";
 			else
-				d = o.dispcol();
+				## Use normal notation
+				widthv = leftmostv;
+				widthu = leftmostu;
+				decplaces = max(-lastsig)(1) + 1;
+				if (decplaces > 0)
+					widthv += decplaces + 1;
+					widthu += decplaces + 1;
+				else
+					decplaces = 0;
+				endif
+				## Increase width to accomodate minus sign
+				if (negv)
+					widthv += 1;
+				endif
+				if (negu)
+					widthu += 1;
+				endif
+				fmt = sprintf("%%%d.%df +- %%%d.%df", ...
+					widthv, decplaces, widthu, decplaces);
+			endif
+
+			if (isscalar(o.value) && isscalar(o.uncert))
+				pad = 1;
+			else
+				pad = 3;
+			endif
+
+			if (ndims(o.value) == 2)
+				rightpad = 1;   # Space to be left after last column in terminal
+				outwidth = terminal_size()(2) - rightpad;
+				width = widthv + widthu + 4;
+				if (nargout == 0)
+					o.disp2d(fmt, width, pad, outwidth);
+				else
+					d = o.disp2d(fmt, width, pad, outwidth);
+				endif
+			else
+				disp(o.value);
+				disp(o.uncert);
 			endif
 		endfunction
 
@@ -66,6 +103,73 @@ classdef unc
 
 		function r = vertcat(a, b)
 			r = unc([a.value; b.value], [a.uncert; b.uncert]);
+		endfunction
+	endmethods
+
+	methods (Access = private)
+		## Display an unc object if it is at most two-dimensional.
+		## fmt: printf-like format of the value-uncert pair
+		## width: maxuimum width of the printed fmt in characters
+		## pad: number of spaces before each column (including first)
+		## outwidth: width of output in characters
+		## loose: use loose format
+		function d = disp2d(o, fmt, width, pad, outwidth, loose)
+			if (nargin < 6)
+				[~, spacing] = format();
+				loose = strcmp("loose", spacing);
+			endif
+			linesep = "\n"; # TODO: Use CRLF on Windoze?
+			colwidth = pad + width;
+			totcols = max(columns(o.value), columns(o.uncert));
+			colsregular = min(totcols, floor(outwidth / colwidth));
+			donecol = 0;     # Number of columns already processed
+			if (nargout > 0)
+				d = "";
+			endif
+			while (donecol < totcols)
+				tocol = min(donecol + colsregular, totcols);
+				cols = tocol - donecol;
+				fromcol = donecol + 1;
+				if (donecol != 0 || tocol < totcols)
+					## Print column number(s)
+					#coltext
+					if (fromcol == tocol)
+						coltext = sprintf(" Column %d:\n", fromcol);
+					elseif (fromcol+1 == tocol)
+						coltext = sprintf(" Columns %d and %d:\n", fromcol, tocol);
+					else
+						coltext = sprintf(" Columns %d through %d:\n", fromcol, tocol);
+					endif
+					if (nargout == 0)
+						puts(coltext);
+						if (loose)
+							puts(linesep);
+						endif
+					else
+						d = [d coltext];
+						if (loose)
+							d = [d linesep];
+						endif
+					endif
+				endif
+				linefmt = [repmat([" "(ones(1, pad)) fmt], 1, cols) linesep];
+				vu = zeros(rows(o.value), 2*cols);
+				vu(:,1:2:end) = o.value(:,fromcol:tocol);
+				vu(:,2:2:end) = o.uncert(:,fromcol:tocol);
+				if (nargout == 0)
+					printf(linefmt, vu');
+				else
+					d = [d sprintf(linefmt, vu')];
+				endif
+				if (tocol < totcols)
+					if (nargout == 0)
+						puts(linesep);
+					else
+						d = [d linesep];
+					endif
+				endif
+				donecol = tocol;
+			endwhile
 		endfunction
 	endmethods
 endclassdef
