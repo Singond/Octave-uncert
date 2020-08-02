@@ -59,8 +59,10 @@ classdef unc
 				widthu = sigdigits + 5;
 				## In the "%g" format, precision is the total number
 				## of significant digits.
-				fmt = sprintf("%%#%d.%dg +- %%#%d.%dg",...
-						widthv, sigdigits, widthu, sigdigits);
+				## In the "%e" format, it is the number of decimal places,
+				## one more significant place is taken by the integer part.
+				fmt = sprintf("%%#%d.%de +- %%#%d.%de",...
+						widthv, sigdigits-1, widthu, sigdigits-1);
 			else
 				## Use normal notation
 				## Add one additional character for minus sign, even if all
