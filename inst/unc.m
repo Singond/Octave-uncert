@@ -47,7 +47,9 @@ classdef unc
 			decplaces = 0;
 			if (rightmost < -10 || max(leftmostv, leftmostu) > 10)
 				## Use exponential notation
-				fmt = "%g +- %g";
+				fmt = "%#10.5g +- %#10.5g";
+				widthv = 10;
+				widthu = 10;
 			else
 				## Use normal notation
 				## Add one additional character for minus sign, even if all
