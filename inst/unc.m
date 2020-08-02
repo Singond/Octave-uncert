@@ -47,9 +47,15 @@ classdef unc
 			decplaces = 0;
 			if (rightmost < -10 || max(leftmostv, leftmostu) > 10)
 				## Use exponential notation
-				fmt = "%#10.5g +- %#10.5g";
-				widthv = 10;
-				widthu = 10;
+				## The exponent is in the form e+XX, that is 4 chars long.
+				## One character is for the decimal separator.
+				## The value reserves one additional character for the sign.
+				widthv = sigdigits + 6;
+				widthu = sigdigits + 5;
+				## In the "%g" format, precision is the total number
+				## of significant digits.
+				fmt = sprintf("%%#%d.%dg +- %%#%d.%dg",...
+						widthv, sigdigits, widthu, sigdigits);
 			else
 				## Use normal notation
 				## Add one additional character for minus sign, even if all
