@@ -77,7 +77,7 @@ classdef unc
 			if (ndims(o.value) == 2)
 				rightpad = 1;   # Space to be left after last column in terminal
 				outwidth = terminal_size()(2) - rightpad;
-				width = widthv + widthu + 4;
+				width = widthv + widthu + 4; # 4 spaces for the " +- " separator
 				if (nargout == 0)
 					o.disp2d(fmt, width, pad, outwidth);
 				else
