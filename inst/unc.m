@@ -33,6 +33,11 @@ classdef unc
 
 		function d = disp(o)
 			sigdigits = 5;              # Significant digits to display
+			[fmttype, fmtspacing] = format();
+			if (strncmp("long", fmttype, 4))
+				sigdigits = 16;
+			endif
+			loose = strcmp("loose", fmtspacing);
 			absv = abs(o.value(:));
 			absu = abs(o.uncert(:));
 			extremes = [min(absv) max(absv); min(absu) max(absu)];
